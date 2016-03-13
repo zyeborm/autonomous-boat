@@ -3,6 +3,7 @@ from direct.gui.OnscreenText import OnscreenText
 from direct.gui.DirectGui import *
 from panda3d.core import *
 from direct.task.Task import Task
+from pandac.PandaModules import TransparencyAttrib
  
 # Add some text
 bk_text = "BoatSim V0.01"
@@ -27,6 +28,7 @@ def within_360 (self,dirtion):
 #button_m1 = DirectButton(text="-1",scale=0.1,pos=(0.3,.6,0), command=incBar,extraArgs = [-1])
 #button_m10 = DirectButton(text="-10",scale=0.1,pos=(0.6,.6,0), command=incBar,extraArgs = [-10])
 
+wind_dir = 0
 
 def CameraAngleChange():
   CameraAngleText.setText("Camera Angle %.2f" % WindSpeedSlider['value'] )
@@ -43,8 +45,11 @@ WindSpeedSlider = DirectSlider(range=(0,10),scale=0.2, value=5, pos = (-1.1,0,-.
 WindSpeedText = OnscreenText(text = "5", pos = (-1.3,-.1), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
 
 def WindDirChange():
-  WindDirText.setText("Wind dir %.2f" % WindDirSlider['value'] )
-    
+  global wind_dir
+
+  wind_dir = WindDirSlider['value']
+  WindDirText.setText("Wind dir %.2f" % wind_dir)
+  print WindDirSlider['value'], wind_dir
  
 WindDirSlider = DirectSlider(range=(0,360),scale=0.2, value=90, pos = (-1.1,0,-.4), pageSize=3, command=WindDirChange) 
 WindDirText = OnscreenText(text = "5", pos = (-1.3,-.3), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
@@ -63,11 +68,15 @@ CourseText = OnscreenText(text = "5", pos = (-1.3,-.5), scale = 0.07,fg=(1,0.5,0
 position = 0
 def Simulate_Boat(self):
   global position
+  global wind_dir
   dt = globalClock.getDt()  
   position = position + dt
 #  print dt
   boat.run_physics(dt)
   hull.setPos(-1, boat.boat_position_x, .05)     
+  wind_indicator.setPos(-1, boat.boat_position_x, .05) 
+  wind_indicator.setHpr(( -1 * wind_dir+90),-90,0)        
+  
   CameraHolder.setPos(-1, boat.boat_position_x, .05)     
 #  camera.setPos(0, -4 + boat.boat_position_x, 2.0)    
   camera.lookAt(hull) 
@@ -338,7 +347,9 @@ class boat_simulator:
   def run_physics(self,dt):
     self.boat_position_x = self.boat_position_x + dt
     Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] + CourseSlider['value'])
-    print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
+
+
+    #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
 
     
@@ -364,6 +375,18 @@ tex = loader.loadTexture("textures/water1-grid.jpg")
 plane.setTexture(tex)
 texStage = TextureStage.getDefault()
 plane.setTexScale(texStage, 40, 40)
+
+
+wind_indicator_something = CardMaker("wind_indicator")
+wind_indicator_something.setFrame(-1, 1, -1, 1)
+wind_indicator = render.attachNewNode(wind_indicator_something.generate())
+wind_indicator.setP(0)
+
+tex = loader.loadTexture("textures/wind_dir.png")
+wind_indicator.setTexture(tex)
+texStage = TextureStage.getDefault()
+wind_indicator.setTexScale(texStage, 1, 1)
+wind_indicator.setTransparency(TransparencyAttrib.MAlpha)
 
 render.setAntialias(AntialiasAttrib.MAuto)
   
