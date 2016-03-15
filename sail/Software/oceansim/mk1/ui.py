@@ -59,12 +59,12 @@ WindDirText = OnscreenText(text = "5", pos = (-1.3,-.3), scale = 0.07,fg=(1,0.5,
 
 def CourseChange():
   CourseText.setText("Sail Angle %.2f" % CourseSlider['value'] )
-  sail_front.setHpr(0,0,CourseSlider['value'])
-  sail_back.setHpr(0,0,CourseSlider['value'])  
+  sail_front.setHpr(0,0,( -1 * CourseSlider['value']))
+  sail_back.setHpr(0,0,( -1 * CourseSlider['value']))  
 #  hull.setPos(-1, CourseSlider['value'], .05)    
  
 
-CourseSlider = DirectSlider(range=(0,360),scale=0.2, value=0, pos = (-1.1,0,-.6), pageSize=3, command=CourseChange) 
+CourseSlider = DirectSlider(range=(-180,180),scale=0.2, value=0, pos = (-1.1,0,-.6), pageSize=3, command=CourseChange) 
 CourseText = OnscreenText(text = "5", pos = (-1.3,-.5), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1) 
 
 position = 0
@@ -344,14 +344,15 @@ class boat_simulator:
         #We have gone past the desired angle in the list so we need to interpolate between this one and the last one
         Return_Value = Search_Angle #FIXME, use the interpolator 
         break
-    return Return_Value    
+    Return_Value_corrected = (Return_Value[0]* Output_direction,Return_Value[1] * Output_direction,Return_Value[2] * Output_direction)
+    return Return_Value_corrected 
     
   def run_physics(self,dt):
-    self.boat_position_x = self.boat_position_x + dt
-    Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] + CourseSlider['value'])
-
-
-    #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
+    #self.boat_position_x = self.boat_position_x + dt
+    Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
+    self.boat_position_x = self.boat_position_x + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
+	
+    print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
 
     
