@@ -1,0 +1,21 @@
+Thinking, maybe a single wing...
+changes;
+a little larger then one of the proposed wings
+
+pros;
+only one sail moter to run.
+less deck shadding.
+Less weight up high.
+most probably have same number of PV cells as on the 2 wings, will fit on the larger wing
+can tapper the wing at top.
+moving the mast to center of boat where keel is maybe a stronger build.
+
+cons;
+no backup.
+only one mast to mount wind sensor and gps on.
+backup wind sensor on deck will not get as clearer reading as on mast.
+
+next;
+Can try on test boat when electrics are up and running
+
+**********************************************
