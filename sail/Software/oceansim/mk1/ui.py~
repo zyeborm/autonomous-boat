@@ -4,10 +4,13 @@ from direct.gui.DirectGui import *
 from panda3d.core import *
 from direct.task.Task import Task
 from pandac.PandaModules import TransparencyAttrib
- 
+import math
+
 # Add some text
-bk_text = "BoatSim V0.01"
-textObject = OnscreenText(text = bk_text, pos = (0.95,-0.95), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ACenter,mayChange=1)
+bk_text = "BoatSim V0.01\n Test"
+InfoBlock = OnscreenText(text = bk_text, pos = (0.95,-0.5), scale = 0.07,fg=(0,0,0,1),shadow=(1,1,1,1),align=TextNode.ARight,mayChange=1)
+
+
 
 def within_360 (self,dirtion):
   """normalises an angle to between 0 and 360"""
@@ -69,20 +72,20 @@ CourseText = OnscreenText(text = "5", pos = (-1.3,-.5), scale = 0.07,fg=(1,0.5,0
 
 position = 0
 def Simulate_Boat(self):
-  global position
   global wind_dir
   dt = globalClock.getDt()  
-  position = position + dt
+
 #  print dt
   boat.run_physics(dt)
-  hull.setPos(-1, boat.boat_position_x, .05)     
-  wind_indicator.setPos(-1, boat.boat_position_x, .05) 
+  pot_pos_tuple = tuple(boat.boat_position)
+  hull.setPos(pot_pos_tuple)     
+  wind_indicator.setPos(pot_pos_tuple) 
   wind_indicator.setHpr(( -1 * wind_dir+90),-90,0)        
   
-  CameraHolder.setPos(-1, boat.boat_position_x, .05)     
+  CameraHolder.setPos(pot_pos_tuple)     
 #  camera.setPos(0, -4 + boat.boat_position_x, 2.0)    
   camera.lookAt(hull) 
-
+  InfoBlock.setText("Speed %.2f M/s %.2f kts \n Actual Heading %.2f \n AoA %.2f \n Sail Force %.2f" % (0,0,0,0,0))
   return Task.cont
 
 def Set_Camera(self):
@@ -129,9 +132,14 @@ sail_back.setPos(00,0,-0)
 class boat_simulator:
   """This will simulate a boat... hopefully"""
   Boat_mass = 10 #kg
-  boat_position_x = 0
-  boat_position_y = 0
-  boat_position_z = 0
+  boat_position = [-1,0,0.05] # x , y , z
+  boat_velocity = [0,0,0]
+  boat_orientation = [0,0,0]
+  boat_rotational_velocity = [0,0,0]
+  boat_force_matrix = []
+  boat_torque_matrix = []  
+  Sail_AoA = 0
+
   wing_CD_lookup = []
   wing_CD_lookup.append((0,0,0.0067))
   wing_CD_lookup.append((1,0.11,0.0068))
@@ -333,7 +341,6 @@ class boat_simulator:
     if Angle_Of_Attack > 180:
       Angle_Of_Attack = 180 - (Angle_Of_Attack - 180)  #aerofoil is symetrical so CD / CL for 170 degrees = 190 degrees, need to invert the sign of the output though
       Output_direction = -1
-      print "-"
 
     Last_Angle = self.wing_CD_lookup[0] # populate the start angle
     for Search_Angle in self.wing_CD_lookup:     
@@ -346,12 +353,26 @@ class boat_simulator:
         Return_Value = Search_Angle #FIXME, use the interpolator 
         break
     Return_Value_corrected = (Return_Value[0]* Output_direction,Return_Value[1] * Output_direction,Return_Value[2] * Output_direction)
-    return Return_Value    
+    return Return_Value_corrected 
+    
+  def sail_force(self,wind_speed,AoA,heel):
+    Sail_Area = .2
+    coefficents = self.WingCDs(AoA)
+    lift = .5 * coefficents[1] * 1.225 * wind_speed * wind_speed  * Sail_Area
+    drag = .5 * coefficents[2] * 1.225 * wind_speed * wind_speed * Sail_Area
+    
+    angle = math.degrees(math.atan2(lift,drag)) #works out trig quadrants for us so no need to worry about correcting for it
+    force = hypot(lift,drag)
+    print angle,force
+    return (angle,force)
     
   def run_physics(self,dt):
     #self.boat_position_x = self.boat_position_x + dt
+    
     Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
-    self.boat_position_x = self.boat_position_x + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
+    x = self.sail_force(WindDirSlider['value'],Sail_Angle_Of_Attack,0)
+    
+    self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
 	
     print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
