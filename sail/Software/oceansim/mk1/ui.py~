@@ -362,16 +362,20 @@ class boat_simulator:
     drag = .5 * coefficents[2] * 1.225 * wind_speed * wind_speed * Sail_Area
     
     angle = math.degrees(math.atan2(lift,drag)) #works out trig quadrants for us so no need to worry about correcting for it
-    force = hypot(lift,drag)
-    print angle,force
-    return (angle,force)
+    force = math.hypot(lift,drag)
+    #print angle,force
+    return (angle,force) 
     
   def run_physics(self,dt):
     #self.boat_position_x = self.boat_position_x + dt
+    force_list = []
+    torque_list = [] #not used
     
     Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
-    x = self.sail_force(WindDirSlider['value'],Sail_Angle_Of_Attack,0)
+
+    force_list.append(self.sail_force(WindDirSlider['value'],Sail_Angle_Of_Attack,0))
     
+    print force_list
     self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
 	
     print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
