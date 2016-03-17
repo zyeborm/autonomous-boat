@@ -355,15 +355,16 @@ class boat_simulator:
     Return_Value_corrected = (Return_Value[0]* Output_direction,Return_Value[1] * Output_direction,Return_Value[2] * Output_direction)
     return Return_Value_corrected 
     
-  def sail_force(self,wind_speed,AoA,heel):
+  def sail_force(self,wind_angle,wind_speed,AoA,heel):
     Sail_Area = .2
     coefficents = self.WingCDs(AoA)
     lift = .5 * coefficents[1] * 1.225 * wind_speed * wind_speed  * Sail_Area
     drag = .5 * coefficents[2] * 1.225 * wind_speed * wind_speed * Sail_Area
     
-    angle = math.degrees(math.atan2(lift,drag)) #works out trig quadrants for us so no need to worry about correcting for it
+    angle = math.degrees(math.atan2(lift,drag))+180  #works out trig quadrants for us so no need to worry about correcting for it
     force = math.hypot(lift,drag)
-    #print angle,force
+    print "lift %.2f drag %.2f angle %.2f Force %.2f" % (lift,drag,angle, force)    
+	#print angle,force
     return (angle,force) 
     
   def run_physics(self,dt):
@@ -372,14 +373,13 @@ class boat_simulator:
     torque_list = [] #not used
     
     Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
+    sail_force = self.sail_force(WindDirSlider['value'],WindSpeedSlider['value'],Sail_Angle_Of_Attack,0)
+    force_list.append((within_360(self,sail_force[0]+WindDirSlider['value']),sail_force[1]))    
 
-    force_list.append(self.sail_force(WindDirSlider['value'],Sail_Angle_Of_Attack,0))
-    
-    
-    print force_list
+    print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
     self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
-	
-    print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
+    print "Force Forward %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])))
+    #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
 
     
