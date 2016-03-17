@@ -81,7 +81,10 @@ def Simulate_Boat(self):
   hull.setPos(pot_pos_tuple)     
   wind_indicator.setPos(pot_pos_tuple) 
   wind_indicator.setHpr(( -1 * wind_dir+90),-90,0)        
-  
+
+  wind_force_indicator.setPos(pot_pos_tuple) 
+  wind_force_indicator.setHpr(( -1 * wind_dir+90),-90,0) 
+    
   CameraHolder.setPos(pot_pos_tuple)     
 #  camera.setPos(0, -4 + boat.boat_position_x, 2.0)    
   camera.lookAt(hull) 
@@ -139,6 +142,7 @@ class boat_simulator:
   boat_force_matrix = []
   boat_torque_matrix = []  
   Sail_AoA = 0
+  sail_force_dir = 0 
 
   wing_CD_lookup = []
   wing_CD_lookup.append((0,0,0.0067))
@@ -361,7 +365,7 @@ class boat_simulator:
     lift = .5 * coefficents[1] * 1.225 * wind_speed * wind_speed  * Sail_Area
     drag = .5 * coefficents[2] * 1.225 * wind_speed * wind_speed * Sail_Area
     
-    angle = self,math.degrees(math.atan2(lift,drag))+180  #works out trig quadrants for us so no need to worry about correcting for it
+    angle = math.degrees(math.atan2(lift,drag))+180  #works out trig quadrants for us so no need to worry about correcting for it
     force = math.hypot(lift,drag)
     print "lift %.2f drag %.2f angle %.2f Force %.2f" % (lift,drag,angle, force)    
 	#print angle,force
@@ -374,11 +378,12 @@ class boat_simulator:
     
     Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
     sail_force = self.sail_force(WindDirSlider['value'],WindSpeedSlider['value'],Sail_Angle_Of_Attack,0)
+    self.sail_force_dir = sail_force[0]+WindDirSlider['value']
     force_list.append((within_360(self,sail_force[0]+WindDirSlider['value']),sail_force[1]))    
 
     print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
     self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
-    print "Force Forward %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])))
+    print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.tan(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0]))))
     #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
 
@@ -417,6 +422,18 @@ wind_indicator.setTexture(tex)
 texStage = TextureStage.getDefault()
 wind_indicator.setTexScale(texStage, 1, 1)
 wind_indicator.setTransparency(TransparencyAttrib.MAlpha)
+
+
+wind_force_indicator_something = CardMaker("wind_force_indicator")
+wind_force_indicator_something.setFrame(-1, 1, -1, 1)
+wind_force_indicator = render.attachNewNode(wind_force_indicator_something.generate())
+wind_force_indicator.setP(0)
+
+tex = loader.loadTexture("textures/wind_force_dir.png")
+wind_force_indicator.setTexture(tex)
+texStage = TextureStage.getDefault()
+wind_force_indicator.setTexScale(texStage, 1, 1)
+wind_force_indicator.setTransparency(TransparencyAttrib.MAlpha)
 
 render.setAntialias(AntialiasAttrib.MAuto)
   
