@@ -395,7 +395,7 @@ class boat_simulator:
 
     print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
     #self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
-    print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.tan(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0]))))
+    print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0]))))
     print "---------------------"
     #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x

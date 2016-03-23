@@ -352,7 +352,7 @@ class boat_simulator:
     Return_Value = ()
     if Angle_Of_Attack > 180:
       Angle_Of_Attack = 180 - (Angle_Of_Attack - 180)  #aerofoil is symetrical so CD / CL for 170 degrees = 190 degrees, need to invert the sign of the output though
-      Output_direction = 1
+      Output_direction = -1
     else:
       Output_direction = 1
 
