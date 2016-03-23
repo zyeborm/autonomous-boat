@@ -91,7 +91,7 @@ def Simulate_Boat(self):
   wind_indicator.setHpr(( -1 * wind_dir+90),-90,0)        
 
   wind_force_indicator.setPos(pot_pos_tuple) 
-  wind_force_indicator.setHpr(( -1 * boat.sail_force_dir + wind_dir +90 ),-90,0) 
+  wind_force_indicator.setHpr(( -1 * boat.sail_force_dir +90 ),-90,0) 
     
   CameraHolder.setPos(pot_pos_tuple)     
 #  camera.setPos(0, -4 + boat.boat_position_x, 2.0)    
@@ -353,6 +353,8 @@ class boat_simulator:
     if Angle_Of_Attack > 180:
       Angle_Of_Attack = 180 - (Angle_Of_Attack - 180)  #aerofoil is symetrical so CD / CL for 170 degrees = 190 degrees, need to invert the sign of the output though
       Output_direction = 1
+    else:
+      Output_direction = -1
 
     Last_Angle = self.wing_CD_lookup[0] # populate the start angle
     for Search_Angle in self.wing_CD_lookup:     
@@ -364,18 +366,18 @@ class boat_simulator:
         #We have gone past the desired angle in the list so we need to interpolate between this one and the last one
         Return_Value = Search_Angle #FIXME, use the interpolator 
         break
-    Return_Value_corrected = (Return_Value[0]* Output_direction,Return_Value[1] * Output_direction,Return_Value[2] * Output_direction)
+    Return_Value_corrected = (Return_Value[0]* Output_direction,Return_Value[1] * Output_direction,Return_Value[2])
     return Return_Value_corrected 
     
   def sail_force(self,wind_angle,wind_speed,AoA,heel):
     Sail_Area = .2
     coefficents = self.WingCDs(AoA)
-    lift = .5 * coefficents[1] * 1.225 * wind_speed * wind_speed  * Sail_Area
+    lift = .5 * coefficents[1] * 1.225 * wind_speed * wind_speed * Sail_Area
     drag = .5 * coefficents[2] * 1.225 * wind_speed * wind_speed * Sail_Area
     
-    angle = math.degrees(math.atan2(lift,drag)) +180  #works out trig quadrants for us so no need to worry about correcting for it
-    angle_to_wind = angle 
-    angle = angle + wind_angle 
+    angle = math.degrees(math.atan2(lift,drag))   #works out trig quadrants for us so no need to worry about correcting for it
+    angle_to_wind = angle
+    angle = angle
     force = math.hypot(lift,drag)
     print "lift %.2f:%.2f drag %.2f:%.2f angle_to_wind %.2f angle %.2f AoA %.2f Force %.2f" % (lift, coefficents[1],drag, coefficents[2],angle_to_wind,angle,AoA, force)    
 	#print angle,force
