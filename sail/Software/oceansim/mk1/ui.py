@@ -143,15 +143,23 @@ sail_back.setPos(00,0,-0)
 class boat_simulator:
   """This will simulate a boat... hopefully"""
   Boat_mass = 10 #kg
-  boat_position = [-1,0,0.05] # x , y , z
-  boat_velocity = [0,0,0]
-  boat_orientation = [0,0,0]
-  boat_rotational_velocity = [0,0,0]
-  boat_force_matrix = []
-  boat_torque_matrix = []  
-  Sail_AoA = 0
-  sail_force_dir = 0 
 
+  boat_force_matrix = []
+  boat_acceleration_matrix = []  
+  boat_velocity = [0,0,0]
+  boat_position = [-1,0,0.05] # x , y , z
+  
+  boat_torque_matrix = []  
+  boat_rotational_acceleration_matrix = []    
+  boat_rotational_velocity = [0,0,0]
+  boat_orientation = [0,0,0]
+  
+  Sail_1_AoA = 0
+  sail_1_force_dir = 0 
+
+  Sail_2_AoA = 0
+  sail_2_force_dir = 0 
+  
   wing_CD_lookup = []
   wing_CD_lookup.append((0,0,0.0067))
   wing_CD_lookup.append((1,0.11,0.0068))
@@ -382,6 +390,19 @@ class boat_simulator:
     print "lift %.2f:%.2f drag %.2f:%.2f angle_to_wind %.2f angle %.2f AoA %.2f Force %.2f" % (lift, coefficents[1],drag, coefficents[2],angle_to_wind,angle,AoA, force)    
 	#print angle,force
     return (angle,force) 
+  
+  def process_forces(self,force_list):
+    boat_force_matrix = []
+    total_force_X = 0
+    total_force_Y = 0
+    for force in force_list:
+      Force_X = force[1] * math.cos(math.radians(force[0]))
+      Force_Y = force[1] * math.sin(math.radians(force[0]))
+      print "%-10s - Force X : %.2f Force Y %.2f " % (force[2],Force_X ,Force_Y)
+      total_force_X += Force_X
+      total_force_Y += Force_Y      
+    print "%-10s - Force X : %.2f Force Y %.2f " % ("Total",total_force_X ,total_force_Y)
+    boat_force_matrix = [total_force_X ,total_force_Y]
     
   def run_physics(self,dt):
     #self.boat_position_x = self.boat_position_x + dt
@@ -391,11 +412,15 @@ class boat_simulator:
     Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
     sail_force = self.sail_force(WindDirSlider['value'],WindSpeedSlider['value'],Sail_Angle_Of_Attack,0)
     self.sail_force_dir = sail_force[0] #+WindDirSlider['value']
-    force_list.append((within_360(self,sail_force[0]+WindDirSlider['value']),sail_force[1]))    
-
-    print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
+    force_list.append((within_360(self,sail_force[0]+WindDirSlider['value']),sail_force[1],"Sail 1"))    
+    force_list.append((within_360(self,sail_force[0]+WindDirSlider['value']),sail_force[1],"Sail 2"))   
+    
+    
+    #print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
     #self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
-    print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0]))))
+    #print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0])) ))
+    self.process_forces(force_list)
+    
     print "---------------------"
     #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
