@@ -10,13 +10,7 @@ from direct.gui.DirectGui import *
 from panda3d.core import *
 from direct.task.Task import Task
 from pandac.PandaModules import TransparencyAttrib
-
 import math
-from pandac.PandaModules import ClockObject
-FPS = 30
-globalClock = ClockObject.getGlobalClock()
-globalClock.setMode(ClockObject.MLimited)
-globalClock.setFrameRate(FPS)
 
 
 
@@ -48,65 +42,61 @@ def within_360 (self,dirtion):
 wind_dir = 0
 
 def CameraAngleChange():
-  CameraAngleText.setText("Boat Hull Angle %.2f" % CameraAngleSlider['value'] )
-  boat.boat_orientation[0] = CameraAngleSlider['value']
+  CameraAngleText.setText("Camera Angle %.2f" % WindSpeedSlider['value'] )
 
-CameraAngleSlider = DirectSlider(range=(0,360),scale=0.4, value=5, pos = (-1.1,0,0), pageSize=3, command=CameraAngleChange) 
-CameraAngleText = OnscreenText(text = "5", pos = (-1.3,.1), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
+CameraAngleSlider = DirectSlider(range=(0,365),scale=0.2, value=5, pos = (-1.1,0,0), pageSize=3, command=CameraAngleChange) 
+CameraAngleText = OnscreenText(text = "5", pos = (-1.1,0), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
 
-
+Wind_Speed = 0
 def WindSpeedChange():
+  global Wind_Speed
   WindSpeedText.setText("Wind spd %.2f" % WindSpeedSlider['value'] )
-  boat.wind_abs_speed = WindSpeedSlider['value']
+  Wind_Speed = WindSpeedSlider['value']
     
  
 WindSpeedSlider = DirectSlider(range=(0,10),scale=0.4, value=5, pos = (-1.1,0,-.2), pageSize=3, command=WindSpeedChange) 
 WindSpeedText = OnscreenText(text = "5", pos = (-1.3,-.1), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
 
 def WindDirChange():
-  boat.wind_abs[1] = WindDirSlider['value']
-  WindDirText.setText("Wind dir %.2f" % WindDirSlider['value'])
+  global wind_dir
+
+  wind_dir = WindDirSlider['value']
+  WindDirText.setText("Wind dir %.2f" % wind_dir)
   #print WindDirSlider['value'], wind_dir
  
-WindDirSlider = DirectSlider(range=(0,360),scale=0.4, value=90, pos = (-1.1,0,-.4), pageSize=3, command=WindDirChange) 
+WindDirSlider = DirectSlider(range=(0,360),scale=0.2, value=90, pos = (-1.1,0,-.4), pageSize=3, command=WindDirChange) 
 WindDirText = OnscreenText(text = "5", pos = (-1.3,-.3), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
 
 
 def CourseChange():
   CourseText.setText("Sail Angle %.2f" % CourseSlider['value'] )
-  
+  sail_front.setHpr(0,0,( -1 * CourseSlider['value']))
+  sail_back.setHpr(0,0,( -1 * CourseSlider['value']))  
 #  hull.setPos(-1, CourseSlider['value'], .05)    
  
 
-CourseSlider = DirectSlider(range=(-180,180),scale=0.4, value=0, pos = (-1.1,0,-.6), pageSize=3, command=CourseChange) 
+CourseSlider = DirectSlider(range=(-180,180),scale=0.2, value=0, pos = (-1.1,0,-.6), pageSize=3, command=CourseChange) 
 CourseText = OnscreenText(text = "5", pos = (-1.3,-.5), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1) 
 
 position = 0
 def Simulate_Boat(self):
+  global wind_dir
   dt = globalClock.getDt()  
 
-  sail_front.setHpr(0,0,(  -1 * boat.Sail_1_rel_angle   ))
-  sail_back.setHpr(0,0,( -1 * boat.Sail_2_rel_angle ))
 #  print dt
   boat.run_physics(dt)
   pot_pos_tuple = tuple(boat.boat_position)
-  hull.setPos(pot_pos_tuple)
-  
-  hull.setHpr(( -1 * boat.boat_orientation[0]  ),90,-90)
-
-       
+  hull.setPos(pot_pos_tuple)     
   wind_indicator.setPos(pot_pos_tuple) 
-  wind_indicator.setHpr(( -1 * boat.wind_rel[1]+90),-90,0)        
+  wind_indicator.setHpr(( -1 * wind_dir+90),-90,0)        
 
   wind_force_indicator.setPos(pot_pos_tuple) 
-  wind_force_indicator.setHpr(( -1 * boat.sail_1_force_dir +90 ),-90,0) 
+  wind_force_indicator.setHpr(( -1 * boat.sail_force_dir +90 ),-90,0) 
     
   CameraHolder.setPos(pot_pos_tuple)     
 #  camera.setPos(0, -4 + boat.boat_position_x, 2.0)    
   camera.lookAt(hull) 
-  velocity_vector = math.degrees(math.atan2(boat.boat_velocity[0],boat.boat_velocity[1]))
-  speed = math.hypot(boat.boat_velocity[0],boat.boat_velocity[1])
-  InfoBlock.setText("Speed %.2f M/s %.2f kts \n Velocity Vector %.2f \n Hull Direction %.2f \n AoA 1: %.2f 1: %.2f \n Sail Force 1: %.2f 2: %.2f" % (speed,speed*1.94384,velocity_vector,boat.boat_orientation[0],0,0,0,0))
+  InfoBlock.setText("Speed %.2f M/s %.2f kts \n Actual Heading %.2f \n AoA %.2f \n Sail Force %.2f" % (0,0,0,0,0))
   return Task.cont
 
 def Set_Camera(self):
@@ -152,37 +142,16 @@ sail_back.setPos(00,0,-0)
 # Run the tutorial
 class boat_simulator:
   """This will simulate a boat... hopefully"""
-  boat_mass = 10 #kg
-
-  boat_force_matrix = [0,0,0]
-  boat_acceleration_matrix = [0,0,0]  
-  boat_velocity = [0,0,0]
+  Boat_mass = 10 #kg
   boat_position = [-1,0,0.05] # x , y , z
-  
-  boat_torque_matrix = [0,0,0]  
-  boat_rotational_acceleration_matrix = [0,0,0]    
-  boat_rotational_velocity = [0,0,0]
+  boat_velocity = [0,0,0]
   boat_orientation = [0,0,0]
-  
-  force_list = []
-  
-  wind_abs_dir = 90
-  wind_abs_vel = 5  
-  wind_abs=[5,90]
-#  wind_rel_dir = 90
-#  wind_rel_vel = 0
-  wind_rel= [0,90] #mag,direction
-  
-  Sail_1_rel_angle = 0 #angle to the world
-  Sail_1_rel_angle = 0 #angle to the boat hull
-  Sail_1_AoA = 0       #angle to the air flow over the boat hull
-  sail_1_force_dir = 0 #resultant force direction, world referenced
+  boat_rotational_velocity = [0,0,0]
+  boat_force_matrix = []
+  boat_torque_matrix = []  
+  Sail_AoA = 0
+  sail_force_dir = 0 
 
-  Sail_2_abs_angle = 0
-  Sail_2_rel_angle = 0
-  Sail_2_AoA = 0
-  sail_2_force_dir = 0 
-  
   wing_CD_lookup = []
   wing_CD_lookup.append((0,0,0.0067))
   wing_CD_lookup.append((1,0.11,0.0068))
@@ -366,21 +335,9 @@ class boat_simulator:
   wing_CD_lookup.append((179,-0.23,0.035))
   wing_CD_lookup.append((180,0,0.025))
 
-  def vector_add(vec_1,vec_2):
-    """Adds 2 vectors, form of (Mag,Direction (in degrees))"""
-    X1 = vec_1[0] * math.sin(math.radians(vec_1[1]))
-    Y1 = vec_1[0] * math.cos(math.radians(vec_1[1]))    
 
-    X2 = vec_2[0] * math.sin(math.radians(vec_1[2]))
-    Y2 = vec_2[0] * math.cos(math.radians(vec_1[2]))    
   
-    Total_X = X1 + X2
-    Total_Y = Y1 + Y2    
-    
-    Magnitude = math.hypot(Total_X,Total_Y)
-    Direction = math.degrees(math.atan2(Total_X,Total_Y))   
-    return (Magnitude,Direction)
-      
+  
   def WingCDs(self,Angle_Of_Attack):    
     "Returns an interpolated value of the ([angle],[coefficent of lift],[coefficent of drag]) given the table from sandia for a 0012 aerofoil given the angle of attack in degrees"""
     def linear_interpolate_1D(input_angle,list_angle1,list_angle2,coef1,coef2):
@@ -412,152 +369,33 @@ class boat_simulator:
     Return_Value_corrected = (Return_Value[0]* Output_direction,Return_Value[1] * Output_direction,Return_Value[2])
     return Return_Value_corrected 
     
-  def sail_force(self,Sail_Abs_Angle,heel):
-    """Give force on a sail, takes in world referenced sail angle"""
-    if (self.wind_rel[0] > 0):  #no force with no wind speed
-      Sail_Area = .2 #FIXME use the heel angle to reduce this
-      AoA = within_360(0,(self.wind_rel[1] - Sail_Abs_Angle ))
-      coefficents = self.WingCDs(AoA)
-      #find boat velocity 
-      
-      
-      lift = .5 * coefficents[1] * 1.225 * (self.wind_rel[0] ** 2) * Sail_Area 
-      drag = .5 * coefficents[2] * 1.225 * (self.wind_rel[0] ** 2) * Sail_Area
-      
-      angle = math.degrees(math.atan(lift/drag))   #trig quadrants sorted by the coefficents
-      angle_to_wind = angle
-      angle = angle +  self.wind_rel[1] -180
-      print "rel_wind_dir %.2f, abs_wind %.2f" % (self.wind_rel[1],self.wind_abs[1])
-      force = math.hypot(lift,drag)
-    else:
-      angle=0
-      force=0
-      lift=0
-      drag=0
-      angle_to_wind=0
-      coefficents = self.WingCDs(AoA)
-      
-    print "lift %.2f:%.2f drag %.2f:%.2f abs_angle %.2f angle_to_wind %.2f angle %.2f AoA %.2f Force %.2f" % (lift, coefficents[1],drag, coefficents[2],Sail_Abs_Angle,angle_to_wind,angle,AoA, force)    
-	#print angle,force
-    return (force,angle) 
-  
-  def process_forces(self):
-    #print self.force_list
-    boat_force_matrix = []
-    total_force_X = 0
-    total_force_Y = 0
-    for force in self.force_list:
-      Force_X = force[0] * math.sin(math.radians(force[1]))
-      Force_Y = force[0] * math.cos(math.radians(force[1]))
-      print "%-10s - Force X : %.2f Force Y %.2f    :   Force %.2f : Angle %.2f" % (force[2],Force_X ,Force_Y,force[0],force[1])
-      total_force_X += Force_X
-      total_force_Y += Force_Y      
-    print "%-10s - Force X : %.2f Force Y %.2f " % ("Total",total_force_X ,total_force_Y)
-    self.boat_force_matrix = [total_force_X ,total_force_Y,0]
-
-  def process_accelerations(self):
-    #f = ma f/m=a
-    #print self.boat_force_matrix
-    accel_X = self.boat_force_matrix[0] / self.boat_mass
-    accel_Y = self.boat_force_matrix[1] / self.boat_mass    
-    self.boat_acceleration_matrix = [accel_X,accel_Y,0]  
-    print "accel" , self.boat_acceleration_matrix
-
-  def process_velocities(self,dt):
-    #f = ma f/m=a
-    #print self.boat_force_matrix
-    velocity_X = self.boat_velocity[0] + self.boat_acceleration_matrix[0] * dt
-    velocity_Y = self.boat_velocity[1] + self.boat_acceleration_matrix[1] * dt
-    self.boat_velocity = [velocity_X,velocity_Y,0]  
-    print "velocity" , self.boat_velocity
-
-
-  def process_motions(self,dt):  
-    #s = ut + .5at^2
-    dx = self.boat_velocity[0] * dt + .5 * self.boat_acceleration_matrix[0] * (dt * dt)
-    dy = self.boat_velocity[1] * dt + .5 * self.boat_acceleration_matrix[1] * (dt * dt)    
-    self.boat_position = [self.boat_position[0] + dx,self.boat_position[1] + dy,0.05] # x , y , z
-    print "pos" , self.boat_position
-
-  #def translate_world_XY_to_hull_aligned(self,X,Y)
+  def sail_force(self,wind_angle,wind_speed,AoA,heel):
+    Sail_Area = .2
+    coefficents = self.WingCDs(AoA)
+    lift = .5 * coefficents[1] * 1.225 * wind_speed * wind_speed * Sail_Area
+    drag = .5 * coefficents[2] * 1.225 * wind_speed * wind_speed * Sail_Area
     
-  def generate_water_forces(self):  
-    #fake keel uses magic constants #FIXME
-    #needs to take into account heel too #FIXME
-      Keel_Area = 0.2
-      Keel_Lift_Constant = 3
-      Keel_Drag_Constant = .01
-            
-      if ((self.boat_velocity[0] != 0) & (self.boat_velocity[1] != 0)):
-        velocity_vector = math.degrees(math.atan2(boat.boat_velocity[0],boat.boat_velocity[1])) - self.boat_orientation[0]
-        speed = math.hypot(boat.boat_velocity[0],boat.boat_velocity[1])
-        velocity_vector = within_360(0,velocity_vector)
-        vel_side = speed * math.sin(math.radians(velocity_vector)) 
-        vel_forward = speed * math.cos(math.radians(velocity_vector)) 
-
-        lift = .5 * Keel_Lift_Constant * 1025 * (vel_side ** 2) * Keel_Area 
-        drag = .5 * Keel_Drag_Constant * 1025 * (vel_forward ** 2) * Keel_Area 
-        #bo = within_360(0,self.boat_orientation[0])
-        if vel_side > 0:
-          lift = lift * -1
-
-        if vel_forward < 0:
-          drag = drag * -1
-
-#        if (self.boat_orientation[0] > 270)  & (self.boat_orientation[0] <= 360):
-#          lift = lift * -1
-          
-        print "velocity_vector %.2f vel Side %.2f Vel Fwd %.2f lift %.2f drag  %.2f" % (velocity_vector,vel_side,vel_forward,lift,drag)
-        self.force_list.append((lift,within_360(self,self.boat_orientation[0] + 90),"keel lift")) 
-        self.force_list.append((drag,within_360(self,self.boat_orientation[0] - 180),"keel drag"))                         
-        #self.force_list.append((force,within_360(self,angle),"keel")) 
-          
-  def calculate_relative_wind(self):
-      Speed_X = self.wind_abs[0] * math.sin(math.radians(self.wind_abs[1]))
-      Speed_Y = self.wind_abs[0] * math.cos(math.radians(self.wind_abs[1]))
-      Speed_X += self.boat_velocity[0]
-      Speed_Y += self.boat_velocity[1]
-      self.wind_rel[1] = math.degrees(math.atan2(Speed_X,Speed_Y))
-      self.wind_rel[0] = math.hypot(Speed_X,Speed_Y)
-      
+    angle = math.degrees(math.atan(lift/drag))   #works out trig quadrants for us so no need to worry about correcting for it
+    angle_to_wind = angle
+    angle = angle +  wind_angle + 180
+    force = math.hypot(lift,drag)
+    print "lift %.2f:%.2f drag %.2f:%.2f angle_to_wind %.2f angle %.2f AoA %.2f Force %.2f" % (lift, coefficents[1],drag, coefficents[2],angle_to_wind,angle,AoA, force)    
+	#print angle,force
+    return (angle,force) 
+    
   def run_physics(self,dt):
     #self.boat_position_x = self.boat_position_x + dt
-    self.force_list = []
+    force_list = []
     torque_list = [] #not used
-        
-    self.wind_abs[1] = WindDirSlider['value'] 
-    self.wind_abs[0] = WindSpeedSlider['value'] 
-    self.calculate_relative_wind()
-
     
+    Sail_Angle_Of_Attack = within_360(self,WindDirSlider['value'] - CourseSlider['value'])
+    sail_force = self.sail_force(WindDirSlider['value'],WindSpeedSlider['value'],Sail_Angle_Of_Attack,0)
+    self.sail_force_dir = sail_force[0] #+WindDirSlider['value']
+    force_list.append((within_360(self,sail_force[0]+WindDirSlider['value']),sail_force[1]))    
 
-    self.Sail_1_rel_angle = CourseSlider['value']
-    self.Sail_2_rel_angle = CourseSlider['value']
-    
-    self.Sail_1_abs_angle = self.Sail_1_rel_angle + self.boat_orientation[0] #+ 90
-    self.Sail_2_abs_angle = self.Sail_2_rel_angle + self.boat_orientation[0] #+ 90
-      
-    #Sail_Angle_Of_Attack = within_360(self,self.sail_1_AOA)
-
-    #print self.wind_rel[0]
-    
-    sail_force = self.sail_force(self.Sail_1_abs_angle,0)
-    self.sail_1_force_dir = sail_force[1]
-    #self.sail_force_dir = sail_force[0] #+WindDirSlider['value']
-    self.force_list.append((sail_force[0],within_360(self,sail_force[1]),"Sail 1"))    
-    self.force_list.append((sail_force[0],within_360(self,sail_force[1]),"Sail 2"))       
-    
-
-    #print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
+    print "boat angle %.2f boat force %.2f" % (force_list[0][0],force_list[0][1])
     #self.boat_position[1] = self.boat_position[1] + dt * .5 * self.WingCDs(Sail_Angle_Of_Attack)[1]
-    #print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0])) ))
-    self.generate_water_forces()
-    self.process_forces()
-    self.process_accelerations()
-    self.process_velocities(dt)    
-
-    self.process_motions(dt)
-    #print self.boat_acceleration_matrix
+    print "Force Forward %.2f Force Sideways %.2f" % (sail_force[1] * math.cos(math.radians(sail_force[0])),(sail_force[1] * math.sin(math.radians(sail_force[0]))))
     print "---------------------"
     #print self.WingCDs(Sail_Angle_Of_Attack),Sail_Angle_Of_Attack
     #print self.boat_position_x
