@@ -517,9 +517,9 @@ class boat_simulator:
         self.force_list.append((drag,within_360(self,self.boat_orientation[0] - 180),"keel drag"))        
 
         #rudder stuff                 
-        Rudder_Area = 0.005
+        Rudder_Area = 0.5
         Rudder_Constant = .1
-        Keel_Constant = .05
+        Keel_Constant = 5
         Keel_Area = .01
 #        Rudder_AoA = within_360(0,velocity_vector - self.boat_rudder_angle)
         rudder_torque = .5 * self.boat_rudder_angle * Rudder_Constant * 1025 * (vel_forward ** 2) * Rudder_Area 
@@ -527,8 +527,10 @@ class boat_simulator:
           rudder_torque = rudder_torque * -1
 #        print "rudder AOA %.2f" % (Rudder_AoA)
         self.torque_list.append((rudder_torque,0,0,"rudder torque"))                
-        keel_torque = (.5 * self.boat_rotational_velocity[0] * Rudder_Constant * 1025 * (vel_forward ** 2) * Keel_Area) * -1
-        self.torque_list.append((keel_torque,0,0,"keel torque"))      
+        keel_torque = (.5 * self.boat_rotational_velocity[0] * Keel_Constant * 1025 * (vel_forward ** 2) * Keel_Area) * -1
+        self.torque_list.append((keel_torque,0,0,"keel torque"))   
+        keel_torque_static = (.5 * self.boat_rotational_velocity[0] * Keel_Constant * 1025 * Keel_Area) * -1
+        self.torque_list.append((keel_torque_static,0,0,"keel torque static"))         
   def process_torques(self,dt):
     #print self.force_list
     boat_torque_matrix = []
