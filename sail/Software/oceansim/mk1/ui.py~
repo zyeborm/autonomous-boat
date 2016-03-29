@@ -92,8 +92,9 @@ def Simulate_Boat(self):
   pot_pos_tuple = tuple(boat.boat_position)
   hull.setPos(pot_pos_tuple)
   
-  hull.setHpr(( -1 * boat.boat_orientation[0]  ),90,-90)
-
+#  hull.setHpr(( -1 * boat.boat_orientation[0]  ) , 90, -90)
+  hull.setH(-1 * boat.boat_orientation[0])
+  hull.setR(-1 * boat.boat_orientation[1])
        
   wind_indicator.setPos(pot_pos_tuple) 
   wind_indicator.setHpr(( -1 * boat.wind_rel[1]+90),-90,0)        
@@ -505,7 +506,7 @@ class boat_simulator:
         #bo = within_360(0,self.boat_orientation[0])
         if vel_side > 0:
           lift = lift * -1
-
+        self.boat_orientation[1] = lift
         if vel_forward < 0:
           drag = drag * -2 #Add a bit extra drag for going backwards
 
@@ -519,7 +520,7 @@ class boat_simulator:
         #rudder stuff                 
         Rudder_Area = 0.5
         Rudder_Constant = .1
-        Keel_Constant = .05
+        Keel_Constant = 5
         Keel_Area = .01
 #        Rudder_AoA = within_360(0,velocity_vector - self.boat_rudder_angle)
         rudder_torque = .5 * self.boat_rudder_angle * Rudder_Constant * 1025 * (vel_forward ** 2) * Rudder_Area 
