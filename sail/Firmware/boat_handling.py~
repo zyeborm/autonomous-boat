@@ -13,15 +13,10 @@ def Anglular_adding (target_heading,actual_heading):
     return angle_diff
     
 def desired_sail_angle(relative_wind):
-  """takes in + - 180 degrees"""
-  if (relative_wind < -180):
-    wind = relative_wind + 360   
-
   if (relative_wind > 180):
     wind = relative_wind - 360
   else:
     wind=relative_wind #wind angle across deck
-    
   sailag = 11 #wing angle to wind
   tackag = 45 #boat hard tacking angle
   unsailag =110 #stall angle for wing to wind angle

@@ -18,6 +18,10 @@ globalClock = ClockObject.getGlobalClock()
 globalClock.setMode(ClockObject.MLimited)
 globalClock.setFrameRate(FPS)
 
+import sys
+sys.path.append('../../../Firmware/')
+import boat_handling 
+#print dir(boat_handling)
 
 
 # Add some text
@@ -54,6 +58,20 @@ def RudderAngleChange():
 RudderAngleSlider = DirectSlider(range=(-45,45),scale=0.4, value=0, pos = (-1.1,0,0), pageSize=3, command=RudderAngleChange) 
 RudderAngleText = OnscreenText(text = "5", pos = (-1.3,.1), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1)  
 
+#Rudder_text = "AutoRudder"
+#textObject = OnscreenText(text = Rudder_text, pos = (-1.1,0,.1), 
+#scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ACenter,mayChange=1)
+ 
+# Callback function to set  text 
+#def setText(status):
+#	if(status):
+#		bk_text = "Checkbox Selected"
+#	else:
+#		bk_text = "Checkbox Not Selected"
+#	textObject.setText(bk_text)
+ 
+# Add button
+Auto_Rudder = DirectCheckButton(text = "AutoRudder" ,scale=.05,pos = (-1.1,0,.05))
 
 def WindSpeedChange():
   WindSpeedText.setText("Wind spd %.2f" % WindSpeedSlider['value'] )
@@ -77,6 +95,7 @@ def CourseChange():
   
 #  hull.setPos(-1, CourseSlider['value'], .05)    
  
+Auto_Sail = DirectCheckButton(text = "AutoSail" ,scale=.05,pos = (-1.1,0,-.55))
 
 CourseSlider = DirectSlider(range=(-180,180),scale=0.4, value=0, pos = (-1.1,0,-.6), pageSize=3, command=CourseChange) 
 CourseText = OnscreenText(text = "5", pos = (-1.3,-.5), scale = 0.07,fg=(1,0.5,0.5,1),align=TextNode.ALeft,mayChange=1) 
@@ -92,9 +111,9 @@ def Simulate_Boat(self):
   pot_pos_tuple = tuple(boat.boat_position)
   hull.setPos(pot_pos_tuple)
   
-#  hull.setHpr(( -1 * boat.boat_orientation[0]  ) , 90, -90)
-  hull.setH(-1 * boat.boat_orientation[0])
-  hull.setR(-1 * boat.boat_orientation[1])
+  hull.setHpr(( -1 * boat.boat_orientation[0]  ) , 90, -90)
+#  hull.setH(-1 * boat.boat_orientation[0])
+#  hull.setR(-1 * boat.boat_orientation[1])
        
   wind_indicator.setPos(pot_pos_tuple) 
   wind_indicator.setHpr(( -1 * boat.wind_rel[1]+90),-90,0)        
@@ -571,10 +590,14 @@ class boat_simulator:
     self.wind_abs[0] = WindSpeedSlider['value'] 
     self.calculate_relative_wind()
 
-    
-
-    self.Sail_1_rel_angle = CourseSlider['value']
-    self.Sail_2_rel_angle = CourseSlider['value']
+    print "as" , Auto_Sail["indicatorValue"]
+    if Auto_Sail:
+      self.Sail_1_rel_angle = boat_handling.desired_sail_angle(self.wind_rel[1]) #doesn't (yet) care about wind speed
+      self.Sail_2_rel_angle = boat_handling.desired_sail_angle(self.wind_rel[1])  
+      CourseSlider['value'] = self.Sail_1_rel_angle 
+    else:
+      self.Sail_1_rel_angle = CourseSlider['value']
+      self.Sail_2_rel_angle = CourseSlider['value']
     
     self.Sail_1_abs_angle = self.Sail_1_rel_angle + self.boat_orientation[0] #+ 90
     self.Sail_2_abs_angle = self.Sail_2_rel_angle + self.boat_orientation[0] #+ 90
