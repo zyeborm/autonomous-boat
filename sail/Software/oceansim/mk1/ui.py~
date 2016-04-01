@@ -590,8 +590,8 @@ class boat_simulator:
     self.wind_abs[0] = WindSpeedSlider['value'] 
     self.calculate_relative_wind()
 
-    print "as" , Auto_Sail["indicatorValue"]
-    if Auto_Sail:
+
+    if (Auto_Sail["indicatorValue"] == 1):
       self.Sail_1_rel_angle = boat_handling.desired_sail_angle(self.wind_rel[1]) #doesn't (yet) care about wind speed
       self.Sail_2_rel_angle = boat_handling.desired_sail_angle(self.wind_rel[1])  
       CourseSlider['value'] = self.Sail_1_rel_angle 

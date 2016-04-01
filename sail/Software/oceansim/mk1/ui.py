@@ -18,8 +18,8 @@ globalClock = ClockObject.getGlobalClock()
 globalClock.setMode(ClockObject.MLimited)
 globalClock.setFrameRate(FPS)
 
-import sys
-sys.path.append('../../../Firmware/')
+import sys,os
+sys.path.append(os.path.join('..', '..','..','Firmware'))
 import boat_handling 
 #print dir(boat_handling)
 
