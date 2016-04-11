@@ -1,13 +1,12 @@
 from __future__ import division
 from Adafruit_PWM_Servo_Driver import PWM
 import time
-from rotary_read import read_wind
-import boat_handling
 
-# ===========================================================================
-# Example Code
-# ===========================================================================
 
+
+class Actuators:
+  def __init__(output_mode)
+  
 # Initialise the PWM device using the default address
 pwm = PWM(0x40)
 # Note if you'd like more debug output you can instead run:
@@ -30,7 +29,7 @@ def setServoPulse(channel, pulse):
   pwm.setPWM(channel, 0, pulse)
 
 pwm.setPWMFreq(60)                        # Set frequency to 60 Hz
-#boat_handler = boat_handling()
+boat_handler = boat_handling()
 
 while (True):
   # Change speed of continuous servo on channel O

@@ -1,0 +1,8 @@
+from __future__ import division
+from boat_handling import boat_handling
+
+
+
+boat_handler = boat_handling()
+
+

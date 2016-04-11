@@ -18,8 +18,8 @@ globalClock = ClockObject.getGlobalClock()
 globalClock.setMode(ClockObject.MLimited)
 globalClock.setFrameRate(FPS)
 
-import sys
-sys.path.append('../../../Firmware/')
+import sys,os
+sys.path.append(os.path.join('..', '..','..','Firmware'))
 import boat_handling 
 #print dir(boat_handling)
 
@@ -592,8 +592,8 @@ class boat_simulator:
 
 
     if (Auto_Sail["indicatorValue"] == 1):
-      self.Sail_1_rel_angle = boat_handling.desired_sail_angle(self.wind_rel[1]) #doesn't (yet) care about wind speed
-      self.Sail_2_rel_angle = boat_handling.desired_sail_angle(self.wind_rel[1])  
+      self.Sail_1_rel_angle = boat_handling.desired_sail_angle(within_360(0,self.wind_rel[1])) #doesn't (yet) care about wind speed
+      self.Sail_2_rel_angle = boat_handling.desired_sail_angle(within_360(0,self.wind_rel[1]))  
       CourseSlider['value'] = self.Sail_1_rel_angle 
     else:
       self.Sail_1_rel_angle = CourseSlider['value']

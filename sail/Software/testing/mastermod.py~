@@ -1,0 +1,8 @@
+import mod1
+import mod2
+
+mod1.printval()
+mod2.printval()
+
+mod1.foo = "blarg"
+mod1.printval()
