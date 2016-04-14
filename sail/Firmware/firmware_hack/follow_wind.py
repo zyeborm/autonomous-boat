@@ -38,18 +38,27 @@ servo_hysteresis = 0
 while (True):
   # Change speed of continuous servo on channel O
   wind_angle = (read_wind() - 4) % 360 #calibration
-  
-  sail_angle = boat_handling.desired_sail_angle(wind_angle)
-  servo_out = int(serv_center + sail_angle * servo_units_per_degree)
-  if (servo_out < servo_history):
-    servo_hysteresis = 2
-    print 'bl'
-  
-  if servo_hysteresis > 0:
-    backlash_servo_out = servo_out - 5
-    servo_hysteresis -= 1
+
+  if (wind_angle < -180):
+    wind = wind_angle + 360   
+
+  if (wind_angle > 180):
+    wind = wind_angle - 360
   else:
-    backlash_servo_out = servo_out
+    wind=wind_angle
+      
+  sail_angle = wind 
+  servo_out = int(serv_center + sail_angle * servo_units_per_degree)
+#  if (servo_out < servo_history):
+#    servo_hysteresis = 2
+#    print 'bl'
+  
+#  if servo_hysteresis > 0:
+#    backlash_servo_out = servo_out - 5
+#    servo_hysteresis -= 1
+#  else:
+
+  backlash_servo_out = servo_out
 
   servo_history = servo_out
   print "wind_angle %.2f sail_angle %.2f difference %.2f servo_out %s backlash_servo_out %s hysteresis %s" % (wind_angle,sail_angle % 360, (wind_angle - sail_angle) % 360 ,servo_out,backlash_servo_out,servo_hysteresis)
