@@ -17,14 +17,29 @@ class Actuator_Handler(object):
         self.Sail1Servo["ServoMin"] = 423  # Min pulse length out of 4096
         self.Sail1Servo["ServoMax"] = 539  # for +- 90 degrees of travel
         self._Servo_Update_Constants(self.Sail1Servo)
-  
+        self.servo_hysteresis = 0
+        self.servo_history = 0
+                
     def _Servo_Update_Constants(self,Servo):
         Servo["Servo_Units_Per_Degree"] = (Servo["ServoMax"] - Servo["ServoMin"]) / 360 * 2
         Servo["Servo_Center"] = ((Servo["ServoMax"] - Servo["ServoMin"]) / 2) + Servo["ServoMin"]
     
     def Actuate(self,Time_Increment,Boat_State):
-        if (Boat_State.Environment_Mode == "Physical"):  
-            self.pwm.setPWM(0, 0, int(self.Sail1Servo["Servo_Center"] + Boat_State.Sail_1_Desired_Hull_Angle * self.Sail1Servo["Servo_Units_Per_Degree"])) #Sail1
+        if (Boat_State.Environment_Mode == "Physical"): 
+            servo_out = self.Sail1Servo["Servo_Center"] + Boat_State.Sail_1_Desired_Hull_Angle * self.Sail1Servo["Servo_Units_Per_Degree"]
+
+            if (servo_out < self.servo_history):
+                servo_hysteresis = 2
+                print 'bl'  
+
+            if self.servo_hysteresis > 0:
+              backlash_servo_out = servo_out - 5
+              servo_hysteresis -= 1
+            else:
+              backlash_servo_out = servo_out 
+            self.servo_history = servo_out
+              
+            self.pwm.setPWM(0, 0, int(backlash_servo_out)) #Sail1
           
         
     def setServoPulse(channel, pulse):

@@ -4,8 +4,8 @@ import logging
 class boat_handling(object):
   def __init__(self):
     self.sailag = 11 #wing angle to wind
-    self.tackag = 45 #boat hard tacking angle
-    self.unsailag =110 #stall angle for wing to wind angle
+    self.tackag = 15 #boat hard tacking angle
+    self.unsailag =130 #stall angle for wing to wind angle
     self.runsailag = 90 #runing sail angle to wind
     
 
@@ -37,7 +37,7 @@ class boat_handling(object):
     if wind>180 or wind<-180:
         logging.critical('Wind Error, got %s which is outside +-180',wind)
     elif abs(wind)<self.tackag:
-        sailingag =0
+        sailingag = wind
         logging.debug('into wind, sail angle %s',sailingag)
     elif wind<0 and abs(wind)>=self.tackag and abs(wind)<self.unsailag:
         sailingag=self._Anglular_adding(wind,self.sailag)
