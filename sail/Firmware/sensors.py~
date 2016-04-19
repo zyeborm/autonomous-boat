@@ -1,7 +1,0 @@
-from __future__ import division
-from Adafruit_PWM_Servo_Driver import PWM
-import time
-from rotary_read import read_wind
-
-def sensors(object):
-  def __init__(self):
