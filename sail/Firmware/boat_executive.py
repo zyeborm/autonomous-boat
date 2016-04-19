@@ -6,7 +6,7 @@ import sensors_handling
 import actuators
 import networking
 
-logging.basicConfig(level=logging.INFO,format='%(module)s %(asctime)s %(message)s')
+logging.basicConfig(filename='example.log',level=logging.INFO,format='%(module)s %(asctime)s %(message)s')
 
 
 #from sensors import sensors
@@ -16,8 +16,8 @@ class Boat_State_Holder(object):
         
         self.Environment_Mode = Environment_Mode
         self.Operation_Mode = Operation_Mode
-        self.Relative_Wind_Angle = None
-        self.Absolute_Wind_Angle = None
+        self.Relative_Wind_Angle = 0
+        self.Absolute_Wind_Angle = 0
         self.Sail_1_Hull_Angle = None
         self.Sail_1_Angle_Of_Attack = None
         self.Sail_1_Desired_Hull_Angle = None

@@ -12,7 +12,14 @@ class Sensor_Manager(object):
         self.rotary = rotary_read.Rotary_Sensors()
         if (Boat_State.Environment_Mode == "Physical"):
             pass
-
+            
+    def _Anglular_Difference(self,target_heading,actual_heading):
+       angle_diff = target_heading - actual_heading
+       #print angle_diff
+       angle_diff = (angle_diff +180 ) % 360-180
+       #print angle_diff
+       return angle_diff
+       
     def Terminate(self):    
         logging.warning('Terminating GPS Thread')   
         gps_read.gpsp.running = False
@@ -25,7 +32,12 @@ class Sensor_Manager(object):
     def Poll_Sensors(self,Time_Increment,Boat_State):
         """Read the sensor inputs and perform any massaging needed"""
 
-        Boat_State.Relative_Wind_Angle = self.rotary.Read_Wind_Angle_Sensor()
+        #Boat_State.Relative_Wind_Angle = self.rotary.Read_Wind_Angle_Sensor()
+        wind_angle = self.rotary.Read_Wind_Angle_Sensor()
+        wind_delta = self._Anglular_Difference(wind_angle,Boat_State.Relative_Wind_Angle)
+        print Boat_State.Relative_Wind_Angle, wind_angle, wind_delta, wind_delta * .3
+        
+        Boat_State.Relative_Wind_Angle = (Boat_State.Relative_Wind_Angle  + wind_delta * .3) % 360
         #do magic maths to get absolute wind here
         Boat_State.Sail_1_Hull_Angle = self.rotary.Read_Sail_1_Angle_Sensor()
         Boat_State.Sail_1_Angle_Of_Attack = Boat_State.Relative_Wind_Angle - Boat_State.Sail_1_Hull_Angle
