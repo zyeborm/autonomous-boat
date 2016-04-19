@@ -1,5 +1,0 @@
-class bar:
-  foo = "wee"
-
-  def printval(self):
-    print self.foo
